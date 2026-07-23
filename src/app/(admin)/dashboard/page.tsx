@@ -7,15 +7,17 @@ const cards = [
   { label: "Módulos liberados", value: "3", description: "Auth, usuários e painel" },
 ];
 
-export default function DashboardPage() {
-  const user = getCurrentUser();
+export default async function DashboardPage() {
+  const user = await getCurrentUser();
 
   return (
     <main className="p-6">
       <section className="rounded-3xl bg-gradient-to-r from-serviscon-navy to-serviscon-blue p-8 text-white shadow-lg">
         <p className="text-sm uppercase tracking-[0.25em] text-serviscon-green">Painel inicial</p>
         <h2 className="mt-3 text-3xl font-bold">Olá, {user?.name}</h2>
-        <p className="mt-2 max-w-2xl text-slate-100">Primeira entrega funcional com autenticação, isolamento por organização, usuários, perfis e layout administrativo.</p>
+        <p className="mt-2 max-w-2xl text-slate-100">
+          Primeira entrega funcional com autenticação, sessão persistida, isolamento por organização, usuários, perfis e layout administrativo.
+        </p>
       </section>
       <section className="mt-6 grid gap-4 md:grid-cols-2 xl:grid-cols-4">
         {cards.map((card) => (

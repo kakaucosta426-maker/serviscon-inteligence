@@ -4,7 +4,10 @@
 
 - Hash de senha com PBKDF2-SHA512, salt aleatório, comparação em tempo constante e mínimo de 12 caracteres.
 - Server Action de login com erro genérico para credenciais inválidas ou usuário inativo.
-- Cookie de sessão HTTP-only, `sameSite=lax` e `secure` em produção.
+- Proteção básica contra tentativas repetidas de login por identificador.
+- Sessão persistida no banco por token aleatório, cookie HTTP-only e hash SHA-256 armazenado no banco.
+- Logout com remoção da sessão persistida.
+- Cookie de sessão com `sameSite=lax` e `secure` em produção.
 - RBAC inicial com permissões por papel.
 - Helpers de tenant que bloqueiam acesso a registros de outra organização.
 - `.env.example` sem credenciais reais.
@@ -16,7 +19,7 @@
 - Autorização baseada em papéis e contexto de organização.
 - Validação de entrada em toda fronteira externa.
 - Logs de auditoria para ações importantes.
-- Rate limiting em login, recuperação e formulários públicos.
+- Rate limiting distribuído em Redis ou serviço gerenciado antes de produção multi-instância.
 
 ## IA e privacidade
 

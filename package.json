@@ -5,7 +5,7 @@
   "description": "Central de marketing, atendimento, CRM e inteligência comercial da Serviscon.",
   "scripts": {
     "dev": "next dev",
-    "build": "next build",
+    "build": "prisma generate && next build",
     "start": "next start",
     "lint": "next lint",
     "typecheck": "tsc --noEmit",
@@ -14,7 +14,8 @@
     "test": "node --test --experimental-strip-types \"tests/**/*.test.ts\"",
     "db:generate": "prisma generate",
     "db:migrate": "prisma migrate dev",
-    "db:seed": "tsx prisma/seed.ts"
+    "db:seed": "tsx prisma/seed.ts",
+    "postinstall": "prisma generate"
   },
   "dependencies": {
     "@prisma/client": "^5.22.0",
@@ -37,5 +38,10 @@
     "tsx": "^4.20.3",
     "typescript": "^5.8.3"
   },
-  "type": "module"
+  "type": "module",
+  "engines": {
+    "node": "24.x",
+    "npm": ">=10"
+  },
+  "packageManager": "npm@11.4.2"
 }

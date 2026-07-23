@@ -1,9 +1,10 @@
 "use server";
 
-import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { verifyPassword } from "@/modules/auth/password";
 import { findAuthUserByEmail } from "@/modules/auth/repository";
+import { LoginRateLimitError, assertLoginAllowed, clearLoginAttempts } from "@/modules/auth/rate-limit";
+import { createSession, destroyCurrentSession } from "@/modules/auth/session-store";
 import { authenticateUser, AuthenticationError } from "@/modules/auth/session";
 
 export type LoginState = { status: "idle" | "error"; message?: string };
@@ -13,16 +14,12 @@ export async function loginAction(_state: LoginState, formData: FormData): Promi
   const password = String(formData.get("password") ?? "");
 
   try {
+    assertLoginAllowed(email);
     const sessionUser = await authenticateUser({ email, password }, findAuthUserByEmail, verifyPassword);
-    cookies().set("serviscon_session", JSON.stringify(sessionUser), {
-      httpOnly: true,
-      sameSite: "lax",
-      secure: process.env.NODE_ENV === "production",
-      path: "/",
-      maxAge: 60 * 60 * 8,
-    });
+    await createSession(sessionUser);
+    clearLoginAttempts(email);
   } catch (error) {
-    if (error instanceof AuthenticationError) {
+    if (error instanceof AuthenticationError || error instanceof LoginRateLimitError) {
       return { status: "error", message: error.message };
     }
     console.error("Erro inesperado ao autenticar usuário", error);
@@ -30,5 +27,9 @@ export async function loginAction(_state: LoginState, formData: FormData): Promi
   }
 
   redirect("/dashboard");
-  return { status: "idle" };
+}
+
+export async function logoutAction(): Promise<void> {
+  await destroyCurrentSession();
+  redirect("/login");
 }

@@ -26,6 +26,16 @@ CREATE TABLE "User" (
     CONSTRAINT "User_pkey" PRIMARY KEY ("id")
 );
 
+CREATE TABLE "Session" (
+    "id" TEXT NOT NULL,
+    "organizationId" TEXT NOT NULL,
+    "userId" TEXT NOT NULL,
+    "tokenHash" TEXT NOT NULL,
+    "expiresAt" TIMESTAMP(3) NOT NULL,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT "Session_pkey" PRIMARY KEY ("id")
+);
+
 CREATE TABLE "AuditLog" (
     "id" TEXT NOT NULL,
     "organizationId" TEXT NOT NULL,
@@ -41,7 +51,12 @@ CREATE TABLE "AuditLog" (
 CREATE UNIQUE INDEX "Organization_slug_key" ON "Organization"("slug");
 CREATE UNIQUE INDEX "User_email_key" ON "User"("email");
 CREATE INDEX "User_organizationId_role_idx" ON "User"("organizationId", "role");
+CREATE UNIQUE INDEX "Session_tokenHash_key" ON "Session"("tokenHash");
+CREATE INDEX "Session_organizationId_userId_idx" ON "Session"("organizationId", "userId");
+CREATE INDEX "Session_expiresAt_idx" ON "Session"("expiresAt");
 CREATE INDEX "AuditLog_organizationId_entityType_entityId_idx" ON "AuditLog"("organizationId", "entityType", "entityId");
 
 ALTER TABLE "User" ADD CONSTRAINT "User_organizationId_fkey" FOREIGN KEY ("organizationId") REFERENCES "Organization"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE "Session" ADD CONSTRAINT "Session_organizationId_fkey" FOREIGN KEY ("organizationId") REFERENCES "Organization"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE "Session" ADD CONSTRAINT "Session_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 ALTER TABLE "AuditLog" ADD CONSTRAINT "AuditLog_organizationId_fkey" FOREIGN KEY ("organizationId") REFERENCES "Organization"("id") ON DELETE RESTRICT ON UPDATE CASCADE;

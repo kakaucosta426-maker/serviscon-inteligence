@@ -12,7 +12,11 @@ export const demoUsers: Array<{ name: string; email: string; role: UserRole }> =
 ];
 
 export function getDemoPassword(): string {
-  return process.env.SEED_DEMO_PASSWORD ?? "change-this-demo-password";
+  const password = process.env.SEED_DEMO_PASSWORD;
+  if (!password) {
+    throw new Error("Defina SEED_DEMO_PASSWORD localmente antes de executar o seed.");
+  }
+  return password;
 }
 
 export function buildDemoPasswordHash(): string {

@@ -1,15 +1,6 @@
-import { cookies } from "next/headers";
+import { getCurrentSessionUser } from "@/modules/auth/session-store";
 import type { SessionUser } from "@/modules/auth/session";
 
-export function getCurrentUser(): SessionUser | null {
-  const value = cookies().get("serviscon_session")?.value;
-  if (!value) {
-    return null;
-  }
-
-  try {
-    return JSON.parse(value) as SessionUser;
-  } catch {
-    return null;
-  }
+export async function getCurrentUser(): Promise<SessionUser | null> {
+  return getCurrentSessionUser();
 }
