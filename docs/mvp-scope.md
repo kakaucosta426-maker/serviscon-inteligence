@@ -1,30 +1,26 @@
 # Escopo do MVP
 
-## Implementado nesta entrega
+## Incluído
 
-- Configuração inicial do projeto.
-- npm como package manager único e registry oficial configurado.
-- Autenticação local para acesso ao painel.
-- Sessão persistida, logout e proteção básica contra repetição de tentativas de login.
-- Estrutura multitenant por `organizationId`.
-- Usuários de demonstração para Administrador, Marketing, Comercial, Operacional e Gestor.
-- Perfis e permissões iniciais.
-- Layout administrativo e menu principal.
-- Página inicial do painel.
-- Banco de dados inicial, migration e seed manual.
-- Preparação para deploy na Vercel sem seed/migration destrutiva no build.
-- Testes das regras críticas de autenticação, rate limiting e isolamento por organização.
+- Autenticação, recuperação de senha, usuários, papéis e auditoria.
+- Contatos, empresas, vínculos, histórico, tags e deduplicação inicial.
+- Leads manuais e por formulário, origem, status e consentimento.
+- CRM Kanban com 13 etapas definidas.
+- Atividades com tarefas, ligações, reuniões, mensagens, visitas e follow-ups.
+- Visitas técnicas com checklist e anexos.
+- Painel inicial com indicadores essenciais.
 
-## Ainda não implementado
+## Fora do MVP
 
-- CRM, funil Kanban e oportunidades.
-- Contatos, empresas e leads.
-- WhatsApp, Instagram, campanhas e integrações reais.
-- Inteligência artificial.
-- Visitas técnicas e propostas.
+- Cobrança, planos e self-service SaaS.
+- Integrações reais com WhatsApp, Instagram, Ads e e-mail.
+- Agente completo de IA.
+- Assinatura eletrônica e ferramentas financeiras.
 
-## Critérios de aceite da próxima entrega funcional
+## Critérios de aceite
 
-- Usuário só acessa dados da própria organização em todos os repositórios.
-- CRUD de usuários respeita RBAC e auditoria.
-- Recuperação de senha usa tokens curtos e rate limiting distribuído.
+- Usuário só acessa dados da própria organização.
+- Funil permite mover oportunidades com histórico.
+- Leads preservam origem e consentimento.
+- Dashboard reflete dados reais do banco.
+- Logs registram ações críticas.

@@ -1,19 +1,18 @@
 # Serviscon Intelligence
 
-Serviscon Intelligence é a plataforma web interna para marketing, atendimento, relacionamento e inteligência comercial da Serviscon. Esta entrega implementa a fundação funcional do painel administrativo: autenticação local, sessão persistida, proteção básica contra tentativas repetidas de login, logout, estrutura multitenant, usuários, papéis, permissões, layout administrativo, dashboard inicial, banco PostgreSQL com Prisma, migration e seed de demonstração.
+Serviscon Intelligence é a base de uma plataforma web interna para centralizar marketing, atendimento, CRM, visitas técnicas, propostas, relatórios e inteligência comercial da Serviscon. A fundação já considera evolução futura para SaaS multitenant para empresas de facilities.
 
 ## Tecnologias
 
 - Next.js, React e TypeScript em modo rigoroso.
-- Tailwind CSS para UI responsiva e acessível.
-- PostgreSQL com Prisma ORM, UUIDs, migrations versionadas e seed manual.
-- Node Test Runner para regras críticas de autenticação, rate limiting e tenant.
-- Docker Compose para PostgreSQL local.
-- npm como gerenciador de pacotes único, usando o registry oficial `https://registry.npmjs.org/`.
+- Tailwind CSS para UI responsiva e consistente.
+- PostgreSQL com Prisma ORM, UUIDs, migrations versionadas e seed.
+- Vitest para testes automatizados planejados.
+- Docker para dependências locais.
 
 ## Requisitos
 
-- Node.js 24 LTS. A versão recomendada está em `.nvmrc`.
+- Node.js 20 ou superior.
 - npm 10 ou superior.
 - Docker e Docker Compose para PostgreSQL local.
 
@@ -22,24 +21,19 @@ Serviscon Intelligence é a plataforma web interna para marketing, atendimento, 
 ```bash
 npm install
 cp .env.example .env
-```
-
-Edite `.env` localmente e defina valores próprios para `SEED_DEMO_PASSWORD`. Não use credenciais reais em documentação, commits ou exemplos versionados.
-
-## Banco de dados
-
-```bash
-docker compose up -d postgres
 npm run db:generate
 npm run db:migrate
 npm run db:seed
+npm run dev
 ```
 
-A migration inicial cria `Organization`, `User`, `Session` e `AuditLog`, com `organizationId` para isolamento multitenant e papéis/permissões para controle de acesso.
+## Variáveis de ambiente
 
-## Usuários de demonstração
+Use `.env.example` como referência. Nunca versionar `.env` real, tokens, chaves ou credenciais.
 
-O seed cria a organização `Serviscon` e usuários demo para Administrador, Marketing, Comercial, Operacional e Gestor. A senha desses usuários deve ser definida localmente por `SEED_DEMO_PASSWORD` antes de executar o seed.
+## Banco de dados
+
+O banco principal é PostgreSQL. Entidades de negócio possuem `organizationId` para isolamento multitenant, timestamps e exclusão lógica quando aplicável.
 
 ## Execução local
 
@@ -47,7 +41,7 @@ O seed cria a organização `Serviscon` e usuários demo para Administrador, Mar
 npm run dev
 ```
 
-A aplicação inicia em `http://localhost:3000`. A rota raiz redireciona para `/dashboard`; usuários não autenticados são redirecionados para `/login`.
+A aplicação inicia em `http://localhost:3000`.
 
 ## Testes e qualidade
 
@@ -55,54 +49,25 @@ A aplicação inicia em `http://localhost:3000`. A rota raiz redireciona para `/
 npm run lint
 npm run typecheck
 npm run test
-npm run build
 npm run format
 ```
 
-## Deploy na Vercel
-
-- Root Directory: `.`.
-- Framework Preset: Next.js.
-- Package Manager: npm.
-- Install Command: `npm install`.
-- Build Command: `npm run build`.
-- Output Directory: manter o padrão do Next.js.
-- Node.js: 24.x, compatível com `.nvmrc` e `engines.node`.
-
-O script de build executa `prisma generate && next build`, garantindo Prisma Client antes do build sem executar seed e sem rodar migrations destrutivas. Migrations devem ser aplicadas fora do build, em etapa controlada de release, usando conexão segura com o banco de produção.
-
-Variáveis necessárias na Vercel:
-
-- `DATABASE_URL`: conexão PostgreSQL de produção.
-- `APP_BASE_URL`: URL pública da aplicação.
-- `STORAGE_PROVIDER`: `local` no desenvolvimento; storage externo em produção futura.
-- `QUEUE_PROVIDER`: `memory` no desenvolvimento; fila externa em produção futura.
-
-`SEED_DEMO_PASSWORD` é apenas para ambientes de demonstração/homologação e não deve ser configurada para produção, salvo execução controlada e temporária de seed não produtivo.
-
-Não há `vercel.json` porque o projeto segue a detecção padrão de Next.js da Vercel e não precisa de overrides neste momento.
-
 ## Estrutura de pastas
 
-- `src/app`: rotas do Next.js, login, layout administrativo e dashboard.
-- `src/components/admin`: componentes do layout administrativo.
-- `src/lib`: infraestrutura compartilhada, incluindo Prisma e compatibilidade de tenant.
-- `src/modules/auth`: autenticação, hash/verificação de senha, sessão persistida, rate limiting, logout e server action de login.
-- `src/modules/organizations`: regras de isolamento multitenant.
-- `src/modules/permissions`: RBAC e matriz de permissões.
-- `src/modules/users`: dados utilitários para seed de usuários demo.
-- `prisma`: schema, migrations e seed do banco.
-- `tests`: testes automatizados de autenticação, rate limiting e isolamento por organização.
+- `src/app`: rotas e layout do Next.js App Router.
+- `src/lib`: utilitários compartilhados, incluindo helpers de tenant.
+- `src/modules`: domínios de negócio organizados por módulo.
+- `prisma`: schema e seed do banco.
 - `docs`: documentação técnica, produto, arquitetura e decisões.
 
 ## Comandos disponíveis
 
 - `npm run dev`: servidor de desenvolvimento.
-- `npm run build`: gera Prisma Client e executa build de produção.
+- `npm run build`: build de produção.
 - `npm run start`: servidor de produção após build.
 - `npm run lint`: lint do projeto.
 - `npm run typecheck`: verificação TypeScript.
 - `npm run test`: testes automatizados.
 - `npm run db:generate`: gera Prisma Client.
-- `npm run db:migrate`: executa migration local/controlada.
-- `npm run db:seed`: carrega organização e usuários de demonstração.
+- `npm run db:migrate`: executa migration local.
+- `npm run db:seed`: carrega dados de demonstração.

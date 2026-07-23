@@ -1,81 +1,18 @@
-generator client {
-  provider = "prisma-client-js"
-}
+generator client { provider = "prisma-client-js" }
+datasource db { provider = "postgresql" url = env("DATABASE_URL") }
 
-datasource db {
-  provider = "postgresql"
-  url      = env("DATABASE_URL")
-}
+enum UserRole { ADMIN MARKETING COMMERCIAL OPERATIONS MANAGER }
+enum LeadStatus { NEW CONTACTED QUALIFIED DISQUALIFIED CONVERTED }
+enum ActivityType { TASK CALL MEETING MESSAGE VISIT FOLLOW_UP }
+enum ActivityStatus { OPEN IN_PROGRESS DONE CANCELED }
 
-enum UserRole {
-  ADMIN
-  MARKETING
-  COMMERCIAL
-  OPERATIONS
-  MANAGER
-}
-
-enum Permission {
-  DASHBOARD_READ
-  USERS_MANAGE
-  SETTINGS_MANAGE
-  REPORTS_READ
-}
-
-model Organization {
-  id        String   @id @default(uuid())
-  name      String
-  slug      String   @unique
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  users     User[]
-  sessions  Session[]
-  auditLogs AuditLog[]
-}
-
-model User {
-  id             String       @id @default(uuid())
-  organizationId String
-  organization   Organization @relation(fields: [organizationId], references: [id])
-  name           String
-  email          String       @unique
-  passwordHash   String
-  role           UserRole
-  permissions    Permission[] @default([])
-  isActive       Boolean      @default(true)
-  lastLoginAt    DateTime?
-  createdAt      DateTime     @default(now())
-  updatedAt      DateTime     @updatedAt
-  deletedAt      DateTime?
-  sessions       Session[]
-
-  @@index([organizationId, role])
-}
-
-model Session {
-  id             String       @id @default(uuid())
-  organizationId String
-  organization   Organization @relation(fields: [organizationId], references: [id])
-  userId         String
-  user           User         @relation(fields: [userId], references: [id], onDelete: Cascade)
-  tokenHash      String       @unique
-  expiresAt      DateTime
-  createdAt      DateTime     @default(now())
-
-  @@index([organizationId, userId])
-  @@index([expiresAt])
-}
-
-model AuditLog {
-  id             String       @id @default(uuid())
-  organizationId String
-  organization   Organization @relation(fields: [organizationId], references: [id])
-  actorUserId    String?
-  action         String
-  entityType     String
-  entityId       String
-  metadata       Json?
-  createdAt      DateTime     @default(now())
-
-  @@index([organizationId, entityType, entityId])
-}
+model Organization { id String @id @default(uuid()) name String slug String @unique createdAt DateTime @default(now()) updatedAt DateTime @updatedAt users User[] companies Company[] contacts Contact[] leads Lead[] opportunities Opportunity[] activities Activity[] technicalVisits TechnicalVisit[] auditLogs AuditLog[] }
+model User { id String @id @default(uuid()) organizationId String organization Organization @relation(fields:[organizationId], references:[id]) name String email String @unique role UserRole isActive Boolean @default(true) createdAt DateTime @default(now()) updatedAt DateTime @updatedAt deletedAt DateTime? ownedCompanies Company[] ownedContacts Contact[] ownedLeads Lead[] ownedOpportunities Opportunity[] assignedActivities Activity[] assignedVisits TechnicalVisit[] }
+model Company { id String @id @default(uuid()) organizationId String organization Organization @relation(fields:[organizationId], references:[id]) ownerId String? owner User? @relation(fields:[ownerId], references:[id]) name String legalName String? document String? segment String? city String? source String? notes String? tags String[] @default([]) createdAt DateTime @default(now()) updatedAt DateTime @updatedAt deletedAt DateTime? contacts Contact[] leads Lead[] opportunities Opportunity[] technicalVisits TechnicalVisit[] @@index([organizationId, name]) @@unique([organizationId, document]) }
+model Contact { id String @id @default(uuid()) organizationId String organization Organization @relation(fields:[organizationId], references:[id]) companyId String? company Company? @relation(fields:[companyId], references:[id]) ownerId String? owner User? @relation(fields:[ownerId], references:[id]) name String email String? phone String? role String? city String? source String? consentToCommunicate Boolean @default(false) notes String? tags String[] @default([]) createdAt DateTime @default(now()) updatedAt DateTime @updatedAt deletedAt DateTime? leads Lead[] opportunities Opportunity[] activities Activity[] @@index([organizationId, name]) @@unique([organizationId, email]) }
+model Lead { id String @id @default(uuid()) organizationId String organization Organization @relation(fields:[organizationId], references:[id]) companyId String? company Company? @relation(fields:[companyId], references:[id]) contactId String? contact Contact? @relation(fields:[contactId], references:[id]) ownerId String? owner User? @relation(fields:[ownerId], references:[id]) source String serviceInterest String segment String? city String? companySize String? urgency String? status LeadStatus @default(NEW) consentToCommunicate Boolean @default(false) enteredAt DateTime @default(now()) notes String? createdAt DateTime @default(now()) updatedAt DateTime @updatedAt deletedAt DateTime? }
+model PipelineStage { id String @id @default(uuid()) organizationId String name String position Int isWon Boolean @default(false) isLost Boolean @default(false) opportunities Opportunity[] @@unique([organizationId, position]) }
+model Opportunity { id String @id @default(uuid()) organizationId String organization Organization @relation(fields:[organizationId], references:[id]) companyId String company Company @relation(fields:[companyId], references:[id]) contactId String? contact Contact? @relation(fields:[contactId], references:[id]) stageId String stage PipelineStage @relation(fields:[stageId], references:[id]) ownerId String? owner User? @relation(fields:[ownerId], references:[id]) serviceInterest String segment String? estimatedValue Decimal? probability Int @default(0) source String? expectedCloseDate DateTime? nextActivityAt DateTime? notes String? lossReason String? createdAt DateTime @default(now()) updatedAt DateTime @updatedAt deletedAt DateTime? activities Activity[] technicalVisits TechnicalVisit[] @@index([organizationId, stageId]) }
+model Activity { id String @id @default(uuid()) organizationId String organization Organization @relation(fields:[organizationId], references:[id]) assigneeId String? assignee User? @relation(fields:[assigneeId], references:[id]) opportunityId String? opportunity Opportunity? @relation(fields:[opportunityId], references:[id]) contactId String? contact Contact? @relation(fields:[contactId], references:[id]) type ActivityType title String description String? dueAt DateTime priority Int @default(2) status ActivityStatus @default(OPEN) reminderAt DateTime? createdAt DateTime @default(now()) updatedAt DateTime @updatedAt deletedAt DateTime? }
+model TechnicalVisit { id String @id @default(uuid()) organizationId String organization Organization @relation(fields:[organizationId], references:[id]) companyId String company Company @relation(fields:[companyId], references:[id]) opportunityId String? opportunity Opportunity? @relation(fields:[opportunityId], references:[id]) assigneeId String? assignee User? @relation(fields:[assigneeId], references:[id]) address String serviceEvaluated String scheduledAt DateTime checklist Json? attachments Json? notes String? status String @default("SCHEDULED") createdAt DateTime @default(now()) updatedAt DateTime @updatedAt deletedAt DateTime? }
+model AuditLog { id String @id @default(uuid()) organizationId String organization Organization @relation(fields:[organizationId], references:[id]) actorUserId String? action String entityType String entityId String metadata Json? createdAt DateTime @default(now()) @@index([organizationId, entityType, entityId]) }
