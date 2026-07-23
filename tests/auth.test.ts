@@ -1,7 +1,6 @@
-import test from "node:test";
-import assert from "node:assert/strict";
-import { hashPassword, verifyPassword } from "../src/modules/auth/password.ts";
-import { authenticateUser, AuthenticationError, type AuthUserRecord } from "../src/modules/auth/session.ts";
+import { expect, test } from "vitest";
+import { hashPassword, verifyPassword } from "../src/modules/auth/password";
+import { authenticateUser, AuthenticationError, type AuthUserRecord } from "../src/modules/auth/session";
 
 const activeUser: AuthUserRecord = {
   id: "user-1",
@@ -15,9 +14,9 @@ const activeUser: AuthUserRecord = {
 };
 
 test("hashPassword gera hash verificável sem expor a senha em texto puro", () => {
-  assert.notEqual(activeUser.passwordHash, "valid-demo-password");
-  assert.equal(verifyPassword("valid-demo-password", activeUser.passwordHash), true);
-  assert.equal(verifyPassword("senha-incorreta", activeUser.passwordHash), false);
+  expect(activeUser.passwordHash).not.toBe("valid-demo-password");
+  expect(verifyPassword("valid-demo-password", activeUser.passwordHash)).toBe(true);
+  expect(verifyPassword("senha-incorreta", activeUser.passwordHash)).toBe(false);
 });
 
 test("authenticateUser normaliza e-mail e retorna sessão sem passwordHash", async () => {
@@ -27,28 +26,26 @@ test("authenticateUser normaliza e-mail e retorna sessão sem passwordHash", asy
     verifyPassword,
   );
 
-  assert.equal(session.organizationId, "org-serviscon");
-  assert.equal("passwordHash" in session, false);
+  expect(session.organizationId).toBe("org-serviscon");
+  expect("passwordHash" in session).toBe(false);
 });
 
 test("authenticateUser rejeita credenciais inválidas", async () => {
-  await assert.rejects(
+  await expect(
     authenticateUser(
       { email: activeUser.email, password: "senha-incorreta" },
       async () => activeUser,
       verifyPassword,
     ),
-    AuthenticationError,
-  );
+  ).rejects.toThrow(AuthenticationError);
 });
 
 test("authenticateUser rejeita usuário inativo", async () => {
-  await assert.rejects(
+  await expect(
     authenticateUser(
       { email: activeUser.email, password: "valid-demo-password" },
       async () => ({ ...activeUser, isActive: false }),
       verifyPassword,
     ),
-    AuthenticationError,
-  );
+  ).rejects.toThrow(AuthenticationError);
 });
