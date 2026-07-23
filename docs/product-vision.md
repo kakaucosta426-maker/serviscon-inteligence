@@ -19,3 +19,7 @@ A proposta reflete a atuação da Serviscon em terceirização premium de mão d
 - Comercial: trabalha leads, oportunidades, tarefas, propostas e follow-ups.
 - Operacional: executa visitas técnicas, diagnósticos, checklists e anexos.
 - Gestor: acompanha indicadores, desempenho, previsões, contratos e relatórios.
+
+## Direção visual
+
+A experiência inicial deve refletir a comunicação institucional da Serviscon: terceirização premium de mão de obra, gestão completa, equipe qualificada, qualidade e excelência. Os módulos internos devem destacar os serviços principais — limpeza e conservação, portaria, recepção, jardinagem e paisagismo, supervisão e manutenção predial — e preparar segmentações futuras para varejo, educação, condomínios, órgãos públicos, saúde e indústria.
