@@ -1,20 +1,24 @@
+import { createHash, randomBytes } from "node:crypto";
 import { cookies } from "next/headers";
 import { prisma } from "@/lib/prisma";
-import { getSessionTtlMs } from "@/modules/auth/config";
 import type { SessionUser } from "@/modules/auth/session";
-import { createSessionToken, hashSessionToken, isSessionExpired } from "@/modules/auth/session-token";
 
 const sessionCookieName = "serviscon_session";
+const sessionDurationMs = 1000 * 60 * 60 * 8;
+
+function hashToken(token: string): string {
+  return createHash("sha256").update(token).digest("hex");
+}
 
 export async function createSession(user: SessionUser): Promise<void> {
-  const token = createSessionToken();
-  const expiresAt = new Date(Date.now() + getSessionTtlMs());
+  const token = randomBytes(32).toString("base64url");
+  const expiresAt = new Date(Date.now() + sessionDurationMs);
 
   await prisma.session.create({
     data: {
       userId: user.id,
       organizationId: user.organizationId,
-      tokenHash: hashSessionToken(token),
+      tokenHash: hashToken(token),
       expiresAt,
     },
   });
@@ -35,11 +39,11 @@ export async function getCurrentSessionUser(): Promise<SessionUser | null> {
   }
 
   const session = await prisma.session.findUnique({
-    where: { tokenHash: hashSessionToken(token) },
+    where: { tokenHash: hashToken(token) },
     include: { user: { include: { organization: true } } },
   });
 
-  if (!session || isSessionExpired(session.expiresAt) || !session.user.isActive || session.user.deletedAt) {
+  if (!session || session.expiresAt <= new Date() || !session.user.isActive || session.user.deletedAt) {
     return null;
   }
 
@@ -56,7 +60,7 @@ export async function getCurrentSessionUser(): Promise<SessionUser | null> {
 export async function destroyCurrentSession(): Promise<void> {
   const token = cookies().get(sessionCookieName)?.value;
   if (token) {
-    await prisma.session.deleteMany({ where: { tokenHash: hashSessionToken(token) } });
+    await prisma.session.deleteMany({ where: { tokenHash: hashToken(token) } });
   }
 
   cookies().delete(sessionCookieName);

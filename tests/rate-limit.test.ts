@@ -1,19 +1,18 @@
-import test from "node:test";
-import assert from "node:assert/strict";
+import { expect, test } from "vitest";
 import {
   LoginRateLimitError,
   assertLoginAllowed,
   clearLoginAttempts,
   resetLoginRateLimitForTests,
-} from "../src/modules/auth/rate-limit.ts";
+} from "../src/modules/auth/rate-limit";
 
 test("assertLoginAllowed bloqueia excesso de tentativas no mesmo identificador", () => {
   resetLoginRateLimitForTests();
   for (let attempt = 0; attempt < 5; attempt += 1) {
-    assert.doesNotThrow(() => assertLoginAllowed("ADMIN.DEMO@SERVISCON.EXAMPLE"));
+    expect(() => assertLoginAllowed("ADMIN.DEMO@SERVISCON.EXAMPLE")).not.toThrow();
   }
 
-  assert.throws(() => assertLoginAllowed("admin.demo@serviscon.example"), LoginRateLimitError);
+  expect(() => assertLoginAllowed("admin.demo@serviscon.example")).toThrow(LoginRateLimitError);
 });
 
 test("clearLoginAttempts libera o identificador após login válido", () => {
@@ -23,5 +22,5 @@ test("clearLoginAttempts libera o identificador após login válido", () => {
   }
 
   clearLoginAttempts("comercial.demo@serviscon.example");
-  assert.doesNotThrow(() => assertLoginAllowed("comercial.demo@serviscon.example"));
+  expect(() => assertLoginAllowed("comercial.demo@serviscon.example")).not.toThrow();
 });
