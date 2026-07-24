@@ -3,7 +3,7 @@ import { loginAction } from "@/modules/auth/actions";
 export default function LoginPage() {
   return (
     <main className="flex min-h-screen items-center justify-center bg-slate-100 p-6">
-      <form action={loginAction.bind(null, { status: "idle" })} className="w-full max-w-md rounded-3xl bg-white p-8 shadow-xl">
+      <form action={loginAction} className="w-full max-w-md rounded-3xl bg-white p-8 shadow-xl">
         <p className="text-sm font-semibold uppercase tracking-[0.25em] text-serviscon-green">Acesso interno</p>
         <h1 className="mt-3 text-3xl font-bold text-serviscon-navy">Serviscon Intelligence</h1>
         <p className="mt-2 text-sm text-slate-600">Entre com sua conta corporativa para acessar o painel administrativo.</p>

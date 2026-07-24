@@ -1,5 +1,7 @@
 import { getCurrentUser } from "@/modules/auth/current-user";
 
+export const dynamic = "force-dynamic";
+
 const cards = [
   { label: "Usuários ativos", value: "5", description: "Perfis demo configurados" },
   { label: "Organizações", value: "1", description: "Tenant Serviscon" },

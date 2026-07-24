@@ -1,29 +1,27 @@
 # Banco de Dados
 
-## Entrega funcional inicial
-
-O banco inicial cobre autenticação, estrutura multitenant, usuários, perfis/permissões, sessões persistidas e auditoria. CRM, contatos, leads, atividades, visitas técnicas e propostas permanecem planejados para fases seguintes.
-
 ## Diretrizes
 
 - PostgreSQL como banco transacional.
 - Prisma ORM com migrations versionadas.
 - UUIDs como identificadores públicos.
-- `organizationId` nas entidades pertencentes a uma organização.
+- `organizationId` em entidades pertencentes a uma organização.
 - `createdAt`, `updatedAt` e `deletedAt` quando houver exclusão lógica.
-- Índices por organização, papel, sessão e entidade auditada.
+- Índices por organização, estágio, entidade e campos de deduplicação.
 
-## Entidades criadas agora
+## Entidades iniciais
 
-- `Organization`: tenant/cliente da plataforma.
-- `User`: usuário autenticável com `passwordHash`, papel, permissões, status ativo, timestamps e vínculo obrigatório à organização.
-- `Session`: sessão persistida com hash do token, expiração, usuário e organização.
-- `AuditLog`: registro de ações relevantes por organização.
+- `Organization`: cliente/tenant da plataforma.
+- `User`: usuário interno com papel.
+- `Company`: empresa cliente ou prospect.
+- `Contact`: pessoa vinculada ou não a empresa.
+- `Lead`: oportunidade inicial captada por formulário, WhatsApp, campanhas ou entrada manual.
+- `PipelineStage`: etapa configurável do funil.
+- `Opportunity`: negociação no CRM.
+- `Activity`: tarefa, ligação, reunião, mensagem, visita ou follow-up.
+- `TechnicalVisit`: agendamento e diagnóstico técnico.
+- `AuditLog`: registro de ações relevantes.
 
-## Seed de demonstração
+## Deduplicação
 
-O seed cria a organização `Serviscon` e cinco usuários de demonstração: Administrador, Marketing, Comercial, Operacional e Gestor. A senha é lida de `SEED_DEMO_PASSWORD` e não deve ser documentada com valor real.
-
-## Próximas entidades planejadas
-
-- `Company`, `Contact`, `Lead`, `PipelineStage`, `Opportunity`, `Activity`, `TechnicalVisit`, `Proposal` e anexos serão introduzidos quando suas funcionalidades forem implementadas.
+A primeira camada usa restrições únicas por organização para documento de empresa e e-mail de contato. Regras futuras devem considerar telefone normalizado, domínio de e-mail, similaridade de nomes e revisão humana antes de mesclar registros.

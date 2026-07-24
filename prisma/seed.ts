@@ -1,42 +1,32 @@
-import { PrismaClient } from "@prisma/client";
-import { buildDemoPasswordHash, demoOrganization, demoUsers } from "../src/modules/users/demo-users";
-import { rolePermissions } from "../src/modules/permissions/rbac";
+import { Permission, PrismaClient, UserRole } from "@prisma/client";
 
 const prisma = new PrismaClient();
 
 async function main() {
   const organization = await prisma.organization.upsert({
-    where: { slug: demoOrganization.slug },
-    update: { name: demoOrganization.name },
-    create: demoOrganization,
+    where: { slug: "serviscon" },
+    update: {},
+    create: {
+      name: "Serviscon",
+      slug: "serviscon",
+    },
   });
 
-  for (const user of demoUsers) {
-    await prisma.user.upsert({
-      where: { email: user.email },
-      update: {
-        name: user.name,
-        role: user.role,
-        permissions: rolePermissions[user.role],
-        organizationId: organization.id,
-      },
-      create: {
-        organizationId: organization.id,
-        name: user.name,
-        email: user.email,
-        role: user.role,
-        permissions: rolePermissions[user.role],
-        passwordHash: buildDemoPasswordHash(),
-      },
-    });
-  }
+  await prisma.user.upsert({
+    where: { email: "admin@example.com" },
+    update: {},
+    create: {
+      organizationId: organization.id,
+      name: "Administrador Demo",
+      email: "admin@example.com",
+      passwordHash: "demo-password-hash",
+      role: UserRole.ADMIN,
+      permissions: [Permission.DASHBOARD_READ, Permission.USERS_MANAGE],
+      isActive: true,
+    },
+  });
 }
 
-main()
-  .catch((error: unknown) => {
-    console.error("Falha ao executar seed de demonstração", error);
-    process.exitCode = 1;
-  })
-  .finally(async () => {
-    await prisma.$disconnect();
-  });
+main().finally(async () => {
+  await prisma.$disconnect();
+});

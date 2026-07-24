@@ -3,6 +3,8 @@ import { Sidebar } from "@/components/admin/sidebar";
 import { logoutAction } from "@/modules/auth/actions";
 import { getCurrentUser } from "@/modules/auth/current-user";
 
+export const dynamic = "force-dynamic";
+
 export default async function AdminLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   const user = await getCurrentUser();
   if (!user) {

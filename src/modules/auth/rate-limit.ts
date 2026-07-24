@@ -1,8 +1,8 @@
-import { getLoginRateLimitMax, getLoginRateLimitWindowMs } from "./config.ts";
-
 type AttemptBucket = { count: number; resetAt: number };
 
 const attempts = new Map<string, AttemptBucket>();
+const maxAttempts = 5;
+const windowMs = 15 * 60 * 1000;
 
 export class LoginRateLimitError extends Error {
   constructor() {
@@ -14,8 +14,6 @@ export class LoginRateLimitError extends Error {
 export function assertLoginAllowed(identifier: string, now = Date.now()): void {
   const key = identifier.trim().toLowerCase();
   const bucket = attempts.get(key);
-  const windowMs = getLoginRateLimitWindowMs();
-  const maxAttempts = getLoginRateLimitMax();
 
   if (!bucket || bucket.resetAt <= now) {
     attempts.set(key, { count: 1, resetAt: now + windowMs });
