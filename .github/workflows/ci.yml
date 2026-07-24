@@ -1,0 +1,46 @@
+name: CI
+
+on:
+  push:
+    branches: [main, principal]
+  pull_request:
+    branches: [main, principal]
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    env:
+      DATABASE_URL: postgresql://ci:ci@localhost:5432/serviscon_intelligence_ci?schema=public
+      APP_BASE_URL: http://localhost:3000
+      SESSION_TTL: 8h
+      LOGIN_RATE_LIMIT_MAX: "5"
+      LOGIN_RATE_LIMIT_WINDOW: 15m
+      STORAGE_PROVIDER: local
+      QUEUE_PROVIDER: memory
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Generate Prisma Client
+        run: npm run db:generate
+
+      - name: Run tests
+        run: npm test
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Typecheck
+        run: npm run typecheck
+
+      - name: Build
+        run: npm run build
