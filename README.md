@@ -89,11 +89,6 @@ Variáveis necessárias na Vercel:
 
 Não há `vercel.json` porque o projeto segue a detecção padrão de Next.js da Vercel e não precisa de overrides neste momento.
 
-
-## Referência visual e posicionamento
-
-A interface administrativa usa como referência conceitual o site institucional da Serviscon, priorizando uma identidade corporativa para terceirização premium, gestão completa, equipe qualificada, qualidade operacional e os serviços de limpeza, portaria, recepção, jardinagem, supervisão e manutenção predial. A plataforma não copia imagens ou ativos externos; os elementos foram reinterpretados para uso interno no painel.
-
 ## Estrutura de pastas
 
 - `src/app`: rotas do Next.js, login, layout administrativo e dashboard.
