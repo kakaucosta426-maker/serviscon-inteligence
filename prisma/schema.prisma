@@ -1,0 +1,303 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum UserRole {
+  ADMIN
+  MARKETING
+  COMMERCIAL
+  OPERATIONS
+  MANAGER
+}
+
+enum Permission {
+  DASHBOARD_READ
+  USERS_MANAGE
+  SETTINGS_MANAGE
+  REPORTS_READ
+}
+
+enum OpportunityStageKind {
+  OPEN
+  WON
+  LOST
+}
+
+enum ActivityKind {
+  TASK
+  CALL
+  MEETING
+  WHATSAPP
+  EMAIL
+  FOLLOW_UP
+}
+
+enum ActivityPriority {
+  LOW
+  MEDIUM
+  HIGH
+}
+
+enum ActivityStatus {
+  OPEN
+  DONE
+  CANCELED
+}
+
+enum TechnicalVisitStatus {
+  SCHEDULED
+  CONFIRMED
+  DONE
+  CANCELED
+}
+
+model Organization {
+  id              String             @id @default(uuid())
+  name            String
+  slug            String             @unique
+  createdAt       DateTime           @default(now())
+  updatedAt       DateTime           @updatedAt
+  users           User[]
+  sessions        Session[]
+  companies       Company[]
+  contacts        Contact[]
+  pipelineStages  PipelineStage[]
+  opportunities   Opportunity[]
+  activities      Activity[]
+  technicalVisits TechnicalVisit[]
+  auditLogs       AuditLog[]
+}
+
+model User {
+  id                      String           @id @default(uuid())
+  organizationId          String
+  organization            Organization     @relation(fields: [organizationId], references: [id])
+  name                    String
+  email                   String           @unique
+  passwordHash            String
+  role                    UserRole
+  permissions             Permission[]     @default([])
+  isActive                Boolean          @default(true)
+  lastLoginAt             DateTime?
+  createdAt               DateTime         @default(now())
+  updatedAt               DateTime         @updatedAt
+  deletedAt               DateTime?
+  sessions                Session[]
+  ownedCompanies          Company[]        @relation("CompanyOwner")
+  ownedContacts           Contact[]        @relation("ContactOwner")
+  ownedOpportunities      Opportunity[]    @relation("OpportunityOwner")
+  assignedActivities      Activity[]       @relation("ActivityAssignee")
+  assignedTechnicalVisits TechnicalVisit[] @relation("TechnicalVisitAssignee")
+
+  @@index([organizationId, role])
+}
+
+model Session {
+  id             String       @id @default(uuid())
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id])
+  userId         String
+  user           User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  tokenHash      String       @unique
+  expiresAt      DateTime
+  createdAt      DateTime     @default(now())
+
+  @@index([organizationId, userId])
+  @@index([expiresAt])
+}
+
+model Company {
+  id             String        @id @default(uuid())
+  organizationId String
+  organization   Organization  @relation(fields: [organizationId], references: [id])
+  ownerId        String?
+  owner          User?         @relation("CompanyOwner", fields: [ownerId], references: [id])
+  legalName      String
+  tradeName      String?
+  document       String?
+  segment        String?
+  phone          String?
+  email          String?
+  website        String?
+  address        String?
+  city           String?
+  state          String?
+  notes          String?
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
+  deletedAt      DateTime?
+  contacts       Contact[]
+  opportunities  Opportunity[]
+  activities     Activity[]
+  technicalVisits TechnicalVisit[]
+
+  @@index([organizationId, legalName])
+  @@index([organizationId, ownerId])
+  @@unique([organizationId, document])
+}
+
+model Contact {
+  id              String           @id @default(uuid())
+  organizationId  String
+  organization    Organization     @relation(fields: [organizationId], references: [id])
+  companyId       String?
+  company         Company?         @relation(fields: [companyId], references: [id])
+  ownerId         String?
+  owner           User?            @relation("ContactOwner", fields: [ownerId], references: [id])
+  name            String
+  email           String?
+  phone           String?
+  whatsapp        String?
+  position        String?
+  source          String?
+  notes           String?
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @updatedAt
+  deletedAt       DateTime?
+  opportunities   Opportunity[]
+  activities      Activity[]
+  technicalVisits TechnicalVisit[]
+
+  @@index([organizationId, name])
+  @@index([organizationId, companyId])
+  @@index([organizationId, ownerId])
+}
+
+model PipelineStage {
+  id             String               @id @default(uuid())
+  organizationId String
+  organization   Organization         @relation(fields: [organizationId], references: [id])
+  name           String
+  position       Int
+  kind           OpportunityStageKind  @default(OPEN)
+  createdAt      DateTime             @default(now())
+  updatedAt      DateTime             @updatedAt
+  deletedAt      DateTime?
+  opportunities  Opportunity[]
+  historiesFrom  OpportunityHistory[] @relation("HistoryFromStage")
+  historiesTo    OpportunityHistory[] @relation("HistoryToStage")
+
+  @@index([organizationId, kind])
+  @@unique([organizationId, position])
+  @@unique([organizationId, name])
+}
+
+model Opportunity {
+  id                String               @id @default(uuid())
+  organizationId    String
+  organization      Organization         @relation(fields: [organizationId], references: [id])
+  companyId         String
+  company           Company              @relation(fields: [companyId], references: [id])
+  contactId         String?
+  contact           Contact?             @relation(fields: [contactId], references: [id])
+  stageId           String
+  stage             PipelineStage         @relation(fields: [stageId], references: [id])
+  ownerId           String?
+  owner             User?                @relation("OpportunityOwner", fields: [ownerId], references: [id])
+  title             String
+  estimatedValue    Decimal?             @db.Decimal(12, 2)
+  probability       Int                  @default(0)
+  source            String?
+  expectedCloseDate DateTime?
+  notes             String?
+  createdAt         DateTime             @default(now())
+  updatedAt         DateTime             @updatedAt
+  deletedAt         DateTime?
+  activities        Activity[]
+  technicalVisits   TechnicalVisit[]
+  histories         OpportunityHistory[]
+
+  @@index([organizationId, stageId])
+  @@index([organizationId, ownerId])
+  @@index([organizationId, updatedAt])
+}
+
+model OpportunityHistory {
+  id             String        @id @default(uuid())
+  organizationId String
+  opportunityId  String
+  opportunity    Opportunity   @relation(fields: [opportunityId], references: [id])
+  fromStageId    String?
+  fromStage      PipelineStage? @relation("HistoryFromStage", fields: [fromStageId], references: [id])
+  toStageId      String?
+  toStage        PipelineStage? @relation("HistoryToStage", fields: [toStageId], references: [id])
+  changedById    String?
+  note           String?
+  createdAt      DateTime      @default(now())
+
+  @@index([organizationId, opportunityId])
+  @@index([organizationId, createdAt])
+}
+
+model Activity {
+  id             String           @id @default(uuid())
+  organizationId String
+  organization   Organization     @relation(fields: [organizationId], references: [id])
+  assigneeId     String?
+  assignee       User?            @relation("ActivityAssignee", fields: [assigneeId], references: [id])
+  contactId      String?
+  contact        Contact?         @relation(fields: [contactId], references: [id])
+  companyId      String?
+  company        Company?         @relation(fields: [companyId], references: [id])
+  opportunityId  String?
+  opportunity    Opportunity?     @relation(fields: [opportunityId], references: [id])
+  kind           ActivityKind
+  title          String
+  dueAt          DateTime?
+  priority       ActivityPriority @default(MEDIUM)
+  status         ActivityStatus   @default(OPEN)
+  notes          String?
+  createdAt      DateTime         @default(now())
+  updatedAt      DateTime         @updatedAt
+  deletedAt      DateTime?
+
+  @@index([organizationId, status])
+  @@index([organizationId, dueAt])
+  @@index([organizationId, assigneeId])
+}
+
+model TechnicalVisit {
+  id                   String               @id @default(uuid())
+  organizationId       String
+  organization         Organization         @relation(fields: [organizationId], references: [id])
+  companyId            String
+  company              Company              @relation(fields: [companyId], references: [id])
+  contactId            String?
+  contact              Contact?             @relation(fields: [contactId], references: [id])
+  opportunityId        String?
+  opportunity          Opportunity?         @relation(fields: [opportunityId], references: [id])
+  assigneeId           String?
+  assignee             User?                @relation("TechnicalVisitAssignee", fields: [assigneeId], references: [id])
+  address              String
+  scheduledAt          DateTime
+  status               TechnicalVisitStatus @default(SCHEDULED)
+  objective            String?
+  notes                String?
+  preliminaryDiagnosis String?
+  createdAt            DateTime             @default(now())
+  updatedAt            DateTime             @updatedAt
+  deletedAt            DateTime?
+
+  @@index([organizationId, status])
+  @@index([organizationId, scheduledAt])
+  @@index([organizationId, assigneeId])
+}
+
+model AuditLog {
+  id             String       @id @default(uuid())
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id])
+  actorUserId    String?
+  action         String
+  entityType     String
+  entityId       String
+  metadata       Json?
+  createdAt      DateTime     @default(now())
+
+  @@index([organizationId, entityType, entityId])
+}
